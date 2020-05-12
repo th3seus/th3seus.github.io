@@ -8,7 +8,7 @@ tags: [oscp, htb, openadmin]
 Recently, the Hack the Box machine OpenAdmin was retired. In light of this, I've decided to refine the notes that I took while rooting this box into a write up. I hope you find it helpful :)
 I start all of my Hack the Box machines with `masscan`. I find this to be a quick and dirty way to find out which ports are likely open on the box. As with all scanning tools, but especially with `masscan`, it's important to be careful and to know the environment you're in. `Masscan` can be much faster than `nmap` and it's very easy to negatively affect the network. On the Hack the Box networks, this could just be an annoyance to the other people who might be on the box; but on an actual engagement in an actual client network, being heavy-handed with scanning tools can start knocking stuff over. Concerns of stealth aside, this is obviously very bad.
 
-![masscan output]({{ site.url }}/assets/openadmin/masscan.png)
+![masscan output](/assets/openadmin/masscan.png)
 
 Once my scan has completed, I `grep`, `cut`, and `sed` the ports into a text file that I use in subsequent `nmap` scans using command substitution. 
 
@@ -18,7 +18,7 @@ It's a little nasty, but get it gets the job done :)
 
 I like to add a port number that I know for certain is not open because it helps `nmap` with version detection. I begin my `nmap` scans with the `-sV`, `--reason`, and `-vv` flags. These flags give me information on the services listening on open ports, the reason why `nmap` thinks a port is in a given state, and information about the progress of the scan itself, respectively.
 
-![nmap output]({{ site.url }}/assets/openadmin/nmap_output.png)
+![nmap output](/assets/openadmin/nmap_output.png)
 
 Both tools told me that that OpenAdmin has TCP ports 22 and 80 open. Port 22 has `OpenSSH 7.6` listening, and port 80 has `Apache 2.4.29` listening. The output from the `nmap` scan also tells me that I'm looking at an ubuntu machine. Generally speaking, I don't put a lot of time into port 22 at the beginning of a test. It's good practice to check the version for any known vulnerabilities, but in my experience, these are rare. 
 
@@ -36,7 +36,7 @@ The script takes a URL as its sole argument, so I pass `http://10.10.10.171/ona/
     
 Running `netstat -antup` show me that aside from the two ports that I discovered to be listening externally, there are also three ports listening internally: port 3306, which is the default port for a mysql database (!); port 52846, which seems odd; and, port 53. The last one is listening on 127.0.0.53 is used locally to forward DNS requests upstream - I feel fairly confident to pass this one by; it is the other two ports that are interesting to me.
 
-![netstat output]({{ site.url }}/assets/openadmin/ntst.png)
+![netstat output](/assets/openadmin/ntst.png)
 
 I use `find / -type f -user www-data` to list all of the files that I have access to.
 
@@ -44,17 +44,17 @@ So far, it looks like I'm dealing with a pretty standard LAMP stack application,
 
 When I was bruteforcing directories earlier, `dirb` had also discovered a few other sites being served by the web server on the machine. At the time, these gave me some insight into other possible users on the box, but not much else. While enumerating after gaining my initial foothold, the directories that the sites are served from proved to be a good series of rabbit holes that did not lead me anywhere interesting. However, I did find a database config file (`local/config/database_settings.inc.php`) in the OpenNetAdmin directory that had some hardcoded credentials for a mysql server. Pretty cool.
 
-![MySQL creds]({{ site.url }}/assets/openadmin/database_creds.png)
+![MySQL creds](/assets/openadmin/database_creds.png)
 
 While snooping around the web directories, I noticed a directory in `/var/www/` that was owned by the user jimmy and the group internal. Listing the contents of the system's home directory, `/home`, confirmed this to be one of the users on the machine (and it also disproved my earlier hypothesis that the names of the other sites being served had some correlation to user names). The other user on the box is joanna.
 
-![home directory contents]({{ site.url }}/assets/openadmin/home_dir.png)
+![home directory contents](/assets/openadmin/home_dir.png)
 
 A lot of the stuff I've seen thus far tells me that jimmy is very likely a lazy admin, or is ignorant to security threats, so I try to use mysql password to ssh into the box as jimmy. Success! The password I found is in fact jimmy's. I check jimmy's home directory, but nothing sticks out as interesting, so I decide to look into what's going on with the web server.
 
     jimmy:n1nj4W4rri0R!
 
-![internal web server directory]({{ site.url }}/assets/openadmin/internal_web_server.png)
+![internal web server directory](/assets/openadmin/internal_web_server.png)
 
 Apache, like most web servers, allows for multiple web sites to be served from the same host. This is called Virtual Hosting, and each site has a configuration file located `/etc/apache2/sites-enabled/`. 
 
@@ -64,7 +64,7 @@ I navigate to the internal web app directory and  `cat main.php` first and find 
 
 I continue looking through the other two php files in the directory. In `index.php`, referenced in `main.php`, I see that authentication is handled by a hard-coded password hash. This is a no-no. 
 
-![index php code]({{ site.url }}/assets/openadmin/index_auth.png)
+![index php code](/assets/openadmin/index_auth.png)
 
 I copy and paste the hash into [CrackStation][crackstation] and I am rewarded with a plaintext password to use with the internal application.
 
@@ -90,11 +90,11 @@ I used `ssh -N -L 8080:127.0.0.1:52846 jimmy@10.10.10.171` to create a proxy usi
 
 Once the SSH proxy is set up, I go back to my browser and navigate to `127.0.0.1:8080`, which takes me to the web app. (Note: If you bind your proxy to local port 8080, then you must have burp turned off).
 
-![internal web page]({{ site.url }}/assets/openadmin/internal_web_page.png)
+![internal web page](/assets/openadmin/internal_web_page.png)
 
 Upon authenticating as jimmy with the cracked password, I am given joanna's key.
 
-![joanna's key]({{ site.url }}/assets/openadmin/joannas_key.png)
+![joanna's key](/assets/openadmin/joannas_key.png)
 
 At this point, I got a little stuck. I tried SSH'ing as joanna using this key as an identity file, but it continued to ask for a password. Eventually, I discovered that password hashes can be generated from SSH keys using a script called `ssh2john.py` which can be found in `/usr/share/john/` on Kali. From there, I was able to crack the hash using `john` and `rockyou.txt`. 
 
@@ -102,11 +102,11 @@ At this point, I got a little stuck. I tried SSH'ing as joanna using this key as
 
 Using the key as the identity file, I was able to authenticate as joanna over SSH using the newly found password. I went through another round of enumeration to see what I can do with joanna. One of the first things I will usually check for is sudo rights. On *nix machines, sudo privileges for a user can be granted to everything, or certain binaries can be whitelisted so that the user can only user sudo with them. It goes even further: password-less sudo can be specified (meaning the user doesn't need to enter a password when asking for a sudo rights to the specific binary), and it's possible to also specify which directories a user can access while using `sudo`. Viewing a user's sudo rights is done by entering `sudo -l`. In the case of joanna, this user has no password sudo rights to use `nano` to write files to `/opt/priv`.
 
-![joanna's sudo rights]({{ site.url }}/assets/openadmin/joanna_sudo.png)
+![joanna's sudo rights](/assets/openadmin/joanna_sudo.png)
 
 Nano is one of those special binaries that allow you to shell-out commands while you're using it. This makes it easy to work with large amounts of text files. It also means that if you run it as sudo, you have a root shell. This is done by opening nano using sudo (in this case you have to send `/opt/priv` as the argument), and then press CTRL+R to tell nano to read a file, and then CTRL+X to tell nano you want to run a command. From there, you enter `reset; sh 1>&0 2>&0` to open a shell.
 
-![getting a shell with nano]({{ site.url }}/assets/openadmin/nano_shell.png)
+![getting a shell with nano](/assets/openadmin/nano_shell.png)
     
 * `1>&0` tells `sh` to send data from `stdout` to `stdin`.
     
@@ -116,7 +116,7 @@ Nano is one of those special binaries that allow you to shell-out commands while
 
 At this point, it's a very quick to get the root flag.
 
-![i am root]({{ site.url }}/assets/openadmin/iamroot2.png)
+![i am root](/assets/openadmin/iamroot2.png)
 
 Hope you enjoyed, and please shoot me an email if I got something wrong or if there was something I could have better explained.
 
