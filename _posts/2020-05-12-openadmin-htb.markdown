@@ -106,9 +106,9 @@ Nano is one of those special binaries that allow you to shell-out commands while
 
 ![getting a shell with nano]({{ site.url }}/assets/openadmin/nano_shell.png)
     
-    * `1>&0` tells `sh` to send data from `stdout` to `stdin`.
+* `1>&0` tells `sh` to send data from `stdout` to `stdin`.
     
-    * `2>&0` tells `sh` to send error messages from `stderr` to `stdin`.
+* `2>&0` tells `sh` to send error messages from `stderr` to `stdin`.
     
     This is honestly some *nix shell stuff that I don't quite understand beyond that `stdin` is the text stream that reads input from the user into the shell, `stdout` is the stream used to display text back to the shell, and `stderr` is the stream used to display error messages.
 
