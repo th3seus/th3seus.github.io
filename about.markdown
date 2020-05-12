@@ -4,15 +4,19 @@ title: About
 permalink: /about/
 ---
 
-This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at [jekyllrb.com](https://jekyllrb.com/)
+My name is Stephen and I am currently a security consultant at [NCC Group][ncc-group]. My current
+interests with regards to infosec are:
 
-You can find the source code for Minima at GitHub:
-[jekyll][jekyll-organization] /
-[minima](https://github.com/jekyll/minima)
+* Network penetration testing
+* Red Teaming and Computer Network Operations
+* Industrial Control Systems
 
-You can find the source code for Jekyll at GitHub:
-[jekyll][jekyll-organization] /
-[jekyll](https://github.com/jekyll/jekyll)
+I have an A.S in Cybersecurity from [Merritt College][merritt] in Oakland, CA. Outside of hacking and security, I love to cook good food and break limbs in Brazilian jiu jitsu.
+
+I started this blog because writing things out is a great way to build and retain knowledge, and
+because it's a simple way to give back. If someone is able to solve a problem because of this, then
+I can die happy.
 
 
-[jekyll-organization]: https://github.com/jekyll
+[ncc-group]: https://nccgroup.trust
+[merritt]: https://www.merritt.edu/wp/securityprogram/

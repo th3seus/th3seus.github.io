@@ -2,21 +2,23 @@
 layout: post
 title:  "OpenAdmin Write Up - Hack the Box"
 date:   2020-05-12 10:49:07 -0700
-categories: writeup, htb
+categories: writeup
 tags: [oscp, htb, openadmin]
 ---
 Recently, the Hack the Box machine OpenAdmin was retired. In light of this, I've decided to refine the notes that I took while rooting this box into a write up. I hope you find it helpful :)
 I start all of my Hack the Box machines with `masscan`. I find this to be a quick and dirty way to find out which ports are likely open on the box. As with all scanning tools, but especially with `masscan`, it's important to be careful and to know the environment you're in. `Masscan` can be much faster than `nmap` and it's very easy to negatively affect the network. On the Hack the Box networks, this could just be an annoyance to the other people who might be on the box; but on an actual engagement in an actual client network, being heavy-handed with scanning tools can start knocking stuff over. Concerns of stealth aside, this is obviously very bad.
 
-{IMAGE HERE}
+![masscan output]({{ site.url }}/assets/openadmin/masscan.png)
 
 Once my scan has completed, I `grep`, `cut`, and `sed` the ports into a text file that I use in subsequent `nmap` scans using command substitution. 
 
-{put commands here}
+    grep "Ports:" output | cut -d " " -f 4 | cut -d "/" -f 1 | sed -z -e 's/\n/,/g' | sed -e 's/,$//g' > ports
+
+It's a little nasty, but get it gets the job done :)
 
 I like to add a port number that I know for certain is not open because it helps `nmap` with version detection. I begin my `nmap` scans with the `-sV`, `--reason`, and `-vv` flags. These flags give me information on the services listening on open ports, the reason why `nmap` thinks a port is in a given state, and information about the progress of the scan itself, respectively.
 
-{IMAGE HERE}
+![nmap output]({{ site.url }}/assets/openadmin/nmap_output.png)
 
 Both tools told me that that OpenAdmin has TCP ports 22 and 80 open. Port 22 has `OpenSSH 7.6` listening, and port 80 has `Apache 2.4.29` listening. The output from the `nmap` scan also tells me that I'm looking at an ubuntu machine. Generally speaking, I don't put a lot of time into port 22 at the beginning of a test. It's good practice to check the version for any known vulnerabilities, but in my experience, these are rare. 
 
