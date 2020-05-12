@@ -2,7 +2,7 @@
 layout: post
 title:  "OpenAdmin Write Up - Hack the Box"
 date:   2020-05-12 10:49:07 -0700
-categories: [writeup, htb]
+categories: writeup, htb
 tags: [oscp, htb, openadmin]
 ---
 Recently, the Hack the Box machine OpenAdmin was retired. In light of this, I've decided to refine the notes that I took while rooting this box into a write up. I hope you find it helpful :)
