@@ -33,7 +33,7 @@ The web site is being served from `/opt/ona/www`.
     
 Running `netstat -antup` show me that aside from the two ports that I discovered to be listening externally, there are also three ports listening internally: port 3306, which is the default port for a mysql database (!); port 52846, which seems odd; and, port 53. The last one is listening on 127.0.0.53 is used locally to forward DNS requests upstream - I feel fairly confident to pass this one by; it is the other two ports that are interesting to me.
 
-![netstat output](/assets/openadmin/netstat.png)
+![netstat output]({{ site.url }}/assets/openadmin/netstat.png)
 
 I use `find / -type f -user www-data` to list all of the files that I have access to.
 
